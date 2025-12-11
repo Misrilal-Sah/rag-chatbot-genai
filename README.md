@@ -65,6 +65,14 @@ pip install -r requirements.txt
    - Windows: Download from https://ffmpeg.org/download.html and add to PATH
    - Or use: `winget install FFmpeg`
 
+5. **Add Video Files to Data Folder**:
+   
+   The PDF slides are included in this repo. Download the lecture videos and place them in the `Data/` folder:
+   - `1 part. RAG Intro.mp4` - RAG Introduction lecture
+   - `2 part Databases for GenAI.mp4` - Databases for GenAI lecture
+   
+   > **Note**: Video files are too large for GitHub (>100MB). Download from your AI Academy Google Drive.
+
 ## Usage
 
 ### First Run (Index Documents)
