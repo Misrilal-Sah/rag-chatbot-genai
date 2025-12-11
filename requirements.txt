@@ -1,0 +1,28 @@
+# RAG Chatbot Dependencies
+
+# PDF Processing
+PyMuPDF>=1.23.0
+
+# Audio Transcription (Local Whisper)
+openai-whisper>=20231117
+ffmpeg-python>=0.2.0
+
+# Text Processing & Chunking
+langchain>=0.1.0
+langchain-community>=0.0.10
+
+# Embeddings (Free HuggingFace)
+sentence-transformers>=2.2.0
+
+# Vector Database
+chromadb>=0.4.0
+
+# LLM (Free HuggingFace)
+transformers>=4.36.0
+accelerate>=0.25.0
+
+# Core ML
+torch>=2.0.0
+
+# Utilities
+tqdm>=4.65.0
