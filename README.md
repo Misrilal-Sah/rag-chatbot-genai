@@ -85,7 +85,7 @@ python main.py
 
 This will:
 1. Extract text from PDFs
-2. Transcribe audio/video (may take 10-20 minutes on first run)
+2. Transcribe audio/video (may take 5-10 minutes on first run)
 3. Chunk and embed all text
 4. Store in ChromaDB
 5. Start interactive chat
