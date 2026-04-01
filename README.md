@@ -1,139 +1,380 @@
-# RAG Chatbot
-
-A complete Retrieval-Augmented Generation (RAG) chatbot built that processes a knowledge base from multiple file formats (PDFs and audio/video).
-
-## Features
-
-- **Multi-format Ingestion**: Processes both PDF documents and audio/video files
-- **Local Processing**: Uses free, local models - no API keys required
-- **Persistent Vector Store**: ChromaDB for efficient similarity search
-- **Semantic Chunking**: Intelligent text splitting with overlap for context preservation
-- **Interactive Chat**: Ask questions about the lecture content
-
-## Technology Stack
-
-| Component | Tool |
-|-----------|------|
-| PDF Extraction | PyMuPDF (fitz) |
-| Audio Transcription | OpenAI Whisper (local) |
-| Text Chunking | LangChain |
-| Embeddings | sentence-transformers (all-MiniLM-L6-v2) |
-| Vector Database | ChromaDB |
-| LLM | HuggingFace FLAN-T5 |
-
-## Project Structure
+<div align="center">
 
 ```
-├── Data/                      # Source files (PDFs + audio)
-├── rag_chatbot/               # Main package
-│   ├── __init__.py
-│   ├── pdf_loader.py          # PDF text extraction
-│   ├── audio_transcriber.py   # Whisper transcription
-│   ├── chunker.py             # Text chunking
-│   ├── embedder.py            # Embedding generation
-│   ├── vector_store.py        # ChromaDB operations
-│   ├── retriever.py           # Similarity search
-│   ├── generator.py           # LLM response generation
-│   └── chatbot.py             # Main RAG pipeline
-├── main.py                    # Entry point
-├── test_chatbot.py            # Test script
-├── requirements.txt           # Dependencies
-├── answer_log.txt             # Generated test answers
+██████╗  █████╗  ██████╗      ██████╗██╗  ██╗ █████╗ ████████╗██████╗  ██████╗ ████████╗
+██╔══██╗██╔══██╗██╔════╝     ██╔════╝██║  ██║██╔══██╗╚══██╔══╝██╔══██╗██╔═══██╗╚══██╔══╝
+██████╔╝███████║██║  ███╗    ██║     ███████║███████║   ██║   ██████╔╝██║   ██║   ██║
+██╔══██╗██╔══██║██║   ██║    ██║     ██╔══██║██╔══██║   ██║   ██╔══██╗██║   ██║   ██║
+██║  ██║██║  ██║╚██████╔╝    ╚██████╗██║  ██║██║  ██║   ██║   ██████╔╝╚██████╔╝   ██║
+╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝      ╚═════╝╚═╝  ╚═╝╚═╝  ╚═╝   ╚═╝   ╚═════╝  ╚═════╝    ╚═╝
 ```
 
-## Installation
+### ⚡ Lecture-to-Chat Pipeline · 100% Local · No API Keys · CLI-First
 
-1. Clone the repository:
+<br/>
+
+[![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
+[![LangChain](https://img.shields.io/badge/LangChain-Enabled-1C3C3C?style=for-the-badge&logo=chainlink&logoColor=white)](https://langchain.com)
+[![ChromaDB](https://img.shields.io/badge/Vector_DB-ChromaDB-FF6B35?style=for-the-badge)](https://trychroma.com)
+[![Whisper](https://img.shields.io/badge/STT-Whisper_Local-412991?style=for-the-badge&logo=openai&logoColor=white)](https://github.com/openai/whisper)
+[![FLAN-T5](https://img.shields.io/badge/LLM-FLAN--T5-FF4B4B?style=for-the-badge&logo=huggingface&logoColor=white)](https://huggingface.co/google/flan-t5-base)
+[![License](https://img.shields.io/badge/License-MIT-22C55E?style=for-the-badge)](LICENSE)
+
+<br/>
+
+> *Drop in lecture PDFs and videos. Ask anything. Get grounded answers with sources.*
+> *Everything runs on your machine — no cloud, no cost, no data leakage.*
+
+</div>
+
+<br/>
+
+---
+
+<div align="center">
+
+## ✦ · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · ✦
+
+</div>
+
+<br/>
+
+## 🧠 &nbsp; What Is This?
+
+A **complete Retrieval-Augmented Generation pipeline** that ingests lecture PDFs and video/audio recordings,
+builds a persistent semantic knowledge base, and lets you chat with that content entirely offline via a clean terminal interface.
+
+```
+  PDFs  ──┐
+           ├──► Chunk ──► Embed ──► ChromaDB ──► Retrieve ──► FLAN-T5 ──► Answer
+  Video ──┘
+  (Whisper)
+```
+
+<br/>
+
+---
+
+<br/>
+
+## ✨ &nbsp; Highlights
+
+<br/>
+
+| | Feature | Detail |
+|---|---|---|
+| 🎯 | **Multi-modal ingestion** | PDFs + MP4/MP3/WAV/M4A/WEBM in one pass |
+| 🔒 | **Fully local** | All models run on-device — zero API keys |
+| 💾 | **Persistent vector store** | ChromaDB survives restarts; no re-embedding needed |
+| ⚡ | **Transcript caching** | MD5-hash cache prevents re-transcribing same files |
+| 🔍 | **Cosine retrieval** | Top-K semantic search with per-chunk relevance scores |
+| 🗣️ | **Interactive CLI loop** | Clean chat session with source attribution per reply |
+| 🛠️ | **Configurable quality** | Swap Whisper model size and LLM tier per run |
+
+<br/>
+
+---
+
+<br/>
+
+## 🖥️ &nbsp; Terminal Preview
+
+<br/>
+
+```text
+╔══════════════════════════════════════════════════════════════════════╗
+║          RAG Chatbot — GenAI Lecture Knowledge Base                 ║
+╚══════════════════════════════════════════════════════════════════════╝
+
+  [1/4] Loading embedding model .............. ✓  all-MiniLM-L6-v2 (384-dim)
+  [2/4] Initializing vector store ............ ✓  genai_lectures · 847 chunks
+  [3/4] Setting up retriever ................. ✓  cosine similarity
+  [4/4] Loading LLM .......................... ✓  flan-t5-base (device: cpu)
+
+╔══════════════════════════════════════════════════════════════════════╗
+║                    Interactive Mode — RAG Chat                      ║
+║            Type  'quit'  or  'exit'  to end the session             ║
+╚══════════════════════════════════════════════════════════════════════╝
+
+  You › Why is hybrid search better than vector-only search?
+
+  Retrieved 5 relevant chunks:
+    - RAG-intro.pdf        score=0.873
+    - GenAI.pdf            score=0.841
+    - RAG-intro.pdf        score=0.809
+
+  Bot › Hybrid search combines vector similarity with keyword (BM25)
+        matching, ensuring both semantic and exact-term relevance is
+        captured. Vector-only search can miss precise terminology...
+
+  [Sources: RAG-intro.pdf, GenAI.pdf]
+
+  You › quit
+  Goodbye! ✓
+```
+
+<br/>
+
+---
+
+<br/>
+
+## 🏗️ &nbsp; Architecture
+
+<br/>
+
+```mermaid
+flowchart TD
+    subgraph INGEST ["📥  Ingestion Pipeline"]
+        A1[📄 PDF Files] --> B1[PyMuPDF Extractor]
+        A2[🎬 Video / Audio] --> B2[Whisper Transcriber\n+MD5 Cache]
+        B1 --> C[Unified Text Corpus]
+        B2 --> C
+    end
+
+    subgraph INDEX ["🗂️  Indexing Pipeline"]
+        C --> D[Overlapping Chunker\nsize=500  overlap=50]
+        D --> E[sentence-transformers\nall-MiniLM-L6-v2  384-dim]
+        E --> F[(ChromaDB\npersistent · cosine)]
+    end
+
+    subgraph QUERY ["💬  Query Pipeline"]
+        G([User Question]) --> H[Embed Query]
+        H --> I[Top-K Retriever]
+        F --> I
+        I --> J[Context Builder]
+        J --> K[FLAN-T5 Generator]
+        K --> L([Answer + Sources])
+    end
+```
+
+<br/>
+
+---
+
+<br/>
+
+## 🔧 &nbsp; Tech Stack
+
+<br/>
+
+<div align="center">
+
+| Layer | Tool | Role |
+|---|---|---|
+| 📄 **PDF Extraction** | `PyMuPDF (fitz)` | Per-page text extraction |
+| 🎙️ **Transcription** | `OpenAI Whisper` (local) | Speech-to-text with hash cache |
+| ✂️ **Chunking** | Custom `TextChunker` | Overlapping semantic splits |
+| 🔢 **Embeddings** | `sentence-transformers` | 384-dim dense vectors |
+| 🗄️ **Vector Store** | `ChromaDB` | Cosine-similarity persistent DB |
+| 🔍 **Retrieval** | `Retriever` module | Top-K with relevance scoring |
+| 🤖 **Generation** | `FLAN-T5-base / large` | Local seq2seq LLM |
+| 💻 **Interface** | Python CLI | Interactive + test modes |
+
+</div>
+
+<br/>
+
+---
+
+<br/>
+
+## 📁 &nbsp; Project Layout
+
+<br/>
+
+```text
+rag-chatbot-genai/
+│
+├── 📂 Data/
+│   ├── GenAI.pdf                  ← included
+│   └── RAG-intro.pdf              ← included
+│
+├── 📦 rag_chatbot/
+│   ├── chatbot.py                 ← orchestration & pipeline entry
+│   ├── pdf_loader.py              ← PyMuPDF extraction
+│   ├── audio_transcriber.py       ← Whisper + MD5 caching
+│   ├── chunker.py                 ← overlapping text splitter
+│   ├── embedder.py                ← sentence-transformer wrapper
+│   ├── vector_store.py            ← ChromaDB client
+│   ├── retriever.py               ← cosine top-K search
+│   ├── generator.py               ← FLAN-T5 response generation
+│   └── __init__.py
+│
+├── 🚀 main.py                     ← CLI entry point + argparse
+├── 🧪 test_chatbot.py             ← batch test runner
+├── 📋 requirements.txt
+└── 📝 answer_log.txt              ← test run output
+```
+
+<br/>
+
+---
+
+<br/>
+
+## 🚀 &nbsp; Quick Start
+
+<br/>
+
+### &nbsp; Step 1 &nbsp;—&nbsp; Clone
+
 ```bash
 git clone https://github.com/Misrilal-Sah/rag-chatbot-genai.git
-cd rag-chatbot
+cd rag-chatbot-genai
 ```
 
-2. Create and activate a virtual environment:
+<br/>
+
+### &nbsp; Step 2 &nbsp;—&nbsp; Virtual Environment
+
 ```bash
+# Windows
 python -m venv venv
-venv\Scripts\activate  # Windows
-# source venv/bin/activate  # Linux/Mac
+venv\Scripts\activate
+
+# Linux / macOS
+python -m venv venv
+source venv/bin/activate
 ```
 
-3. Install dependencies:
+<br/>
+
+### &nbsp; Step 3 &nbsp;—&nbsp; Install Dependencies
+
 ```bash
 pip install -r requirements.txt
 ```
 
-4. Install FFmpeg (required for audio processing):
-   - Windows: Download from https://ffmpeg.org/download.html and add to PATH
-   - Or use: `winget install FFmpeg`
+<br/>
 
-5. **Add Video Files to Data Folder**:
-   
-   The PDF slides are included in this repo. Download the lecture videos and place them in the `Data/` folder:
-   - `1 part. RAG Intro.mp4` - RAG Introduction lecture
-   - `2 part Databases for GenAI.mp4` - Databases for GenAI lecture
-   
-   > **Note**: Video files are too large for GitHub (>100MB). Download from your AI Academy Google Drive.
-
-## Usage
-
-### First Run (Index Documents)
-
-Place your PDF and audio/video files in the `Data/` folder, then run:
+### &nbsp; Step 4 &nbsp;—&nbsp; Install FFmpeg  *(audio/video only)*
 
 ```bash
-python main.py
+# Windows (winget)
+winget install FFmpeg
+
+# macOS
+brew install ffmpeg
+
+# Ubuntu / Debian
+sudo apt install ffmpeg
 ```
 
-This will:
-1. Extract text from PDFs
-2. Transcribe audio/video (may take 10-20 minutes on first run)
-3. Chunk and embed all text
-4. Store in ChromaDB
-5. Start interactive chat
+<br/>
 
-### Run Test Questions
+### &nbsp; Step 5 &nbsp;—&nbsp; Add Your Media
+
+```text
+Data/
+ ├── YourLecture.pdf          ← any number of PDFs
+ ├── lecture_part1.mp4        ← optional video files
+ └── lecture_audio.mp3        ← optional audio files
+```
+
+> Two PDFs (`GenAI.pdf`, `RAG-intro.pdf`) are already included and ready to chat with.
+
+<br/>
+
+---
+
+<br/>
+
+## ⚙️ &nbsp; Run Modes
+
+<br/>
 
 ```bash
+# ── Start interactive chat (index on first run)
+python main.py
+
+# ── Force rebuild of the entire vector index
+python main.py --reindex
+
+# ── Run the 3 standard test questions  →  saves answer_log.txt
+python main.py --test
+
+# ── Use a better (slower) Whisper model for transcription
+python main.py --whisper-model small    # tiny | base | small | medium | large
+
+# ── Run test script directly
 python test_chatbot.py
 ```
 
-This runs the 3 required test questions and saves results to `answer_log.txt`.
+<br/>
 
-### Interactive Chat
+> **Whisper model trade-off**
+>
+> | Model | Speed | Accuracy |
+> |---|---|---|
+> | `tiny` | ⚡ fastest | ★★☆☆☆ |
+> | `base` | ⚡ fast *(default)* | ★★★☆☆ |
+> | `small` | 🔄 moderate | ★★★★☆ |
+> | `medium` | 🐢 slow | ★★★★★ |
+> | `large` | 🐢🐢 slowest | ★★★★★ |
 
-```bash
-python main.py
-```
+<br/>
 
-Then ask questions like:
-- "What are the production 'Do's' for RAG?"
-- "What is hybrid search?"
-- "Explain vector databases"
+---
 
-Type `quit` to exit.
+<br/>
 
-### Force Reindex
+## 🧪 &nbsp; Built-In Test Questions
 
-If you add new files, reindex with:
-```bash
-python main.py --reindex
-```
+<br/>
 
-## Test Questions
+The following prompts are validated against the ingested lecture content:
 
-The chatbot was tested with these questions:
+<br/>
 
-1. "What are the production 'Do's' for RAG?"
-2. "What is the difference between standard retrieval and the ColPali approach?"
-3. "Why is hybrid search better than vector-only search?"
+> **Q1** — *"What are the production Do's for RAG?"*
+>
+> **Q2** — *"What is the difference between standard retrieval and the ColPali approach?"*
+>
+> **Q3** — *"Why is hybrid search better than vector-only search?"*
 
-See `answer_log.txt` for the generated answers.
+<br/>
 
-## Notes
+Results and source citations are written to `answer_log.txt` on completion.
 
-- **First-time transcription** of the video file takes 10-20 minutes. Results are cached for subsequent runs.
-- Uses the **lighter FLAN-T5-base** model for faster inference. For better quality, modify `chatbot.py` to use `use_light_llm=False`.
-- **Whisper model size** can be changed with `--whisper-model small/medium/large` for better transcription accuracy (slower).
+<br/>
 
-## Author
+---
 
-Built as part of the AI Academy GenAI course assignment.
+<br/>
+
+## 📌 &nbsp; Performance Notes
+
+<br/>
+
+- **First transcription** of video files takes 10–20 min; result is cached and reused instantly on subsequent runs
+- **ChromaDB** persists in `chroma_db/` — zero re-embedding cost after the first index build
+- **FLAN-T5-base** is the default for speed; set `use_light_llm=False` in `chatbot.py` for FLAN-T5-large quality
+- GPU is auto-detected — `cuda` if available, otherwise `cpu`
+
+<br/>
+
+---
+
+<br/>
+
+<div align="center">
+
+## ✦ · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · ✦
+
+<br/>
+
+**Built for the AI Academy GenAI course — local-first, offline-capable, production-aware.**
+
+*If this project helped you, consider ⭐ starring the repo*
+*and exploring extensions like hybrid BM25 search, reranking, or streaming output.*
+
+<br/>
+
+![Made with Python](https://img.shields.io/badge/Made%20with-Python-1f425f?style=flat-square&logo=python&logoColor=white)
+![Local AI](https://img.shields.io/badge/Runs-100%25%20Locally-22C55E?style=flat-square)
+![No Cloud](https://img.shields.io/badge/No-Cloud%20API-ef4444?style=flat-square)
+
+<br/>
+
+</div>
